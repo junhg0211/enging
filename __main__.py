@@ -1,4 +1,5 @@
 from math import pi, sin
+from threading import Thread
 
 import pyaudio
 from window import Window
@@ -25,23 +26,7 @@ def square(x: float, r: float) -> float:
         return -1.0
 
 
-def audio_main():
-    audio = pyaudio.PyAudio()
-
-    output_info = audio.get_default_output_device_info()
-
-    sample_rate = int(output_info.get('defaultSampleRate'))
-    channels = 1
-    bitrate = 16
-
-    stream = audio.open(
-        format=pyaudio.paInt16,
-        channels=channels,
-        input=False,
-        output=True,
-        rate=sample_rate
-    )
-
+def write_wave(sample_rate: int, bitrate: int, stream: pyaudio.Stream):
     volume = 0.1
     duration = 2.0
     frequency = 440.0
@@ -52,13 +37,33 @@ def audio_main():
         byte = bytes(separate(int(value * volume/2 * 2**bitrate), bitrate//8))
         stream.write(byte)
 
-    stream.close()
-
 
 def main():
-    window = Window()
+    # -- audio thing
+    # initialise audio stream
+    audio = pyaudio.PyAudio()
+    output_info = audio.get_default_output_device_info()
+    sample_rate = int(output_info.get('defaultSampleRate'))
+    channels = 1
+    bitrate = 16
+    stream = audio.open(
+        format=pyaudio.paInt16,
+        channels=channels,
+        input=False,
+        output=True,
+        rate=sample_rate
+    )
 
+    # write wave to the stream
+    thread = Thread(target=write_wave, args=(sample_rate, bitrate, stream))
+    thread.start()
+
+    # -- window thing
+    window = Window()
     window.start()
+
+    # -- close audio stream
+    stream.close()
 
 
 if __name__ == '__main__':
