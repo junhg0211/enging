@@ -1,6 +1,7 @@
 from math import pi, sin
 
 import pyaudio
+from window import Window
 
 
 def separate(number: int, count: int) -> list:
@@ -24,7 +25,7 @@ def square(x: float, r: float) -> float:
         return -1.0
 
 
-def main():
+def audio_main():
     audio = pyaudio.PyAudio()
 
     output_info = audio.get_default_output_device_info()
@@ -52,6 +53,12 @@ def main():
         stream.write(byte)
 
     stream.close()
+
+
+def main():
+    window = Window()
+
+    window.start()
 
 
 if __name__ == '__main__':
