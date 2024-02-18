@@ -26,16 +26,30 @@ def square(x: float, r: float) -> float:
         return -1.0
 
 
-def write_wave(sample_rate: int, bitrate: int, stream: pyaudio.Stream):
-    volume = 0.1
-    duration = 2.0
-    frequency = 440.0
-    for i in range(int(sample_rate * duration)):
-        x = 2*pi * frequency * (i / sample_rate)
-        value = sin(x)
+def sawtooth(x: float):
+    return x/pi % 2 - 1
 
-        byte = bytes(separate(int(value * volume/2 * 2**bitrate), bitrate//8))
-        stream.write(byte)
+
+def pwm(x: float, multiplier: float) -> float:
+    if sin(x) > sawtooth(multiplier * x):
+        return 1.0
+    else:
+        return -1.0
+
+
+def write_wave(sample_rate: int, bitrate: int, stream: pyaudio.Stream):
+    volume = 0.05
+    duration = 2.0
+    frequency = 55.0
+
+    for i in range(int(sample_rate * duration)):
+        frequency += 30/sample_rate
+        x = 2*pi * frequency * (i / sample_rate)
+        value = pwm(x, 7 if i < sample_rate else 4)
+
+        buffer = bytes(separate(int(value * volume/2 * 2**bitrate), bitrate//8))
+
+        stream.write(buffer)
 
 
 def main():
