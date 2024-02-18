@@ -26,12 +26,15 @@ class MouseHandler(Handler):
         elif event.type == pygame.MOUSEBUTTONUP:
             self.buttons -= {event.button}
 
+    def is_pressed(self, button: int) -> bool:
+        return button in self.buttons
+
 
 class KeyboardHandler(Handler):
     def __init__(self):
         self.keys = set()
 
-    def is_pressed(self, key: int):
+    def is_pressed(self, key: int) -> bool:
         return key in self.keys
 
     def handle(self, event: Event):
