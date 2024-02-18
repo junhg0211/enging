@@ -12,10 +12,10 @@ class Window:
         self.window = pygame.display.set_mode((self.width, self.height))
         self.running = True
 
-        self.objects = list()
-
         self.keyboard_handler = KeyboardHandler()
         self.mouse_handler = MouseHandler()
+
+        self.objects = list()
 
         pygame.display.set_caption('Enging')
 
