@@ -125,7 +125,10 @@ class Engine(Object):
 
     def write_wave(self):
         while self.writing:
-            self.frequency += self.acceleration * self.enable_rate * 3 / self.sample_rate
+            self.frequency += (
+                                  self.acceleration * self.enable_rate * 3
+                                  - (1 - self.enable_rate) * self.frequency * 0.005
+                              ) / self.sample_rate
             if self.frequency < 0.0:
                 self.frequency = 0.0
 
