@@ -64,10 +64,12 @@ class Engine(Object):
         self.x = 0.0
         self.pwm_rate = 0
         self.acceleration = 0
+        self.enable_rate = 0.0
 
         self.volume_slider = Slider(100, 100, 400, 100, self.mouse_handler)
         self.pwm_rate_slider = Slider(250, 100, 400, 12, self.mouse_handler)
-        self.acceleration_slider = Slider(400, 100, 400, 10, self.mouse_handler)
+        self.acceleration_slider = Slider(400, 100, 400, 12, self.mouse_handler)
+        self.enable_slider = Slider(550, 100, 400, 12, self.mouse_handler)
 
         font = Font('./res/font/PretendardJP-Regular.otf', 18)
         black = Color(0, 0, 0)
@@ -75,6 +77,7 @@ class Engine(Object):
         self.volume_display = Display(100, 600, 100, 50, font, black, white)
         self.pwm_display = Display(250, 600, 100, 50, font, black, white)
         self.acceleration_display = Display(400, 600, 100, 50, font, black, white)
+        self.enable_display = Display(550, 600, 100, 50, font, black, white)
 
         self.writing = True
         self.thread = Thread(target=self.write_wave)
@@ -85,37 +88,43 @@ class Engine(Object):
         self.volume_slider.tick()
         self.pwm_rate_slider.tick()
         self.acceleration_slider.tick()
+        self.enable_slider.tick()
 
         self.volume = self.volume_slider.get_value_rate()
-        self.pwm_rate = (self.pwm_rate_slider.get_value() + 2) ** 2 - 1
+        self.pwm_rate = self.pwm_rate_slider.get_value() * 2 + 1
         self.acceleration = self.acceleration_slider.get_value() - 5
+        self.enable_rate = self.enable_slider.get_value_rate()
 
         self.volume_display.set_text(format(self.volume * 100, '.2f'))
         self.pwm_display.set_text(str(self.pwm_rate))
         self.acceleration_display.set_text(str(self.acceleration))
+        self.enable_display.set_text(format(self.enable_rate, '.3f'))
 
         self.volume_display.tick()
         self.pwm_display.tick()
         self.acceleration_display.tick()
+        self.enable_display.tick()
 
     def render(self, window: Surface):
         self.volume_slider.render(window)
         self.pwm_rate_slider.render(window)
         self.acceleration_slider.render(window)
+        self.enable_slider.render(window)
 
         self.volume_display.render(window)
         self.pwm_display.render(window)
         self.acceleration_display.render(window)
+        self.enable_display.render(window)
 
     def write_wave(self):
         while self.writing:
-            self.frequency += self.acceleration / self.sample_rate
+            self.frequency += self.acceleration * self.enable_rate / self.sample_rate
             if self.frequency < 0.0:
                 self.frequency = 0.0
 
             self.x += 2 * pi * self.frequency / self.sample_rate
             self.x %= 2 * pi
-            value = pwm(self.x, self.pwm_rate)
+            value = pwm(self.x, self.pwm_rate) * self.enable_rate + sin(self.x) * (1 - self.enable_rate)
 
             buffer = bytes(
                 separate(
