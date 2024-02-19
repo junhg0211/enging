@@ -79,6 +79,8 @@ class Engine(Object):
         self.acceleration_display = Display(400, 600, 100, 50, font, black, white)
         self.enable_display = Display(550, 600, 100, 50, font, black, white)
 
+        self.frequency_display = Display(700, 600, 100, 50, font, black, white)
+
         self.writing = True
         self.thread = Thread(target=self.write_wave)
 
@@ -91,7 +93,7 @@ class Engine(Object):
         self.enable_slider.tick()
 
         self.volume = self.volume_slider.get_value_rate()
-        self.pwm_rate = self.pwm_rate_slider.get_value() * 2 + 1
+        self.pwm_rate = self.pwm_rate_slider.get_value() * 2 + 3
         self.acceleration = self.acceleration_slider.get_value() - 7
         self.enable_rate = self.enable_slider.get_value_rate()
 
@@ -100,10 +102,13 @@ class Engine(Object):
         self.acceleration_display.set_text(str(self.acceleration))
         self.enable_display.set_text(format(self.enable_rate, '.3f'))
 
+        self.frequency_display.set_text(format(self.frequency, ',.1f'))
+
         self.volume_display.tick()
         self.pwm_display.tick()
         self.acceleration_display.tick()
         self.enable_display.tick()
+        self.frequency_display.tick()
 
     def render(self, window: Surface):
         self.volume_slider.render(window)
