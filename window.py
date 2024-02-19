@@ -1,6 +1,7 @@
 import pygame
 
 from window_handler import KeyboardHandler, MouseHandler
+from window_object.engine import Engine
 
 pygame.init()
 
@@ -16,6 +17,8 @@ class Window:
         self.mouse_handler = MouseHandler()
 
         self.objects = list()
+
+        self.objects.append(Engine(self.mouse_handler))
 
         pygame.display.set_caption('Enging')
 
@@ -52,3 +55,6 @@ class Window:
             self.handle_events()
             self.tick()
             self.render()
+
+        for obj in self.objects:
+            obj.close()

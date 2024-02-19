@@ -9,6 +9,9 @@ class Object:
     def render(self, window: Surface):
         pass
 
+    def close(self):
+        pass
+
 
 class Rectangle(Object):
     def __init__(self, x: int, y: int, width: int, height: int, color: Color):

@@ -55,6 +55,17 @@ class Slider(Object):
     def get_value(self) -> int:
         return self.value
 
+    def get_value_rate(self) -> float:
+        return self.value / self.max_level
+
+    def set_value(self, value: int):
+        self.value = value
+        self.slider_y = self.get_slider_y()
+
+    def set_value_rate(self, rate: float):
+        self.value = round(rate * self.max_level)
+        self.slider_y = self.get_slider_y()
+
 
 class ReturnSlider(Slider):
     def __init__(self, x: int, up_y: int, length: int, levels: int, return_value: int, mouse_handler: MouseHandler):
