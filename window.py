@@ -1,5 +1,7 @@
 import pygame
 
+from window_handler import KeyboardHandler, MouseHandler
+
 pygame.init()
 
 
@@ -10,6 +12,11 @@ class Window:
         self.window = pygame.display.set_mode((self.width, self.height))
         self.running = True
 
+        self.keyboard_handler = KeyboardHandler()
+        self.mouse_handler = MouseHandler()
+
+        self.objects = list()
+
         pygame.display.set_caption('Enging')
 
     def handle_events(self):
@@ -17,12 +24,25 @@ class Window:
             if event.type == pygame.QUIT:
                 self.running = False
 
+            self.keyboard_handler.handle(event)
+            self.mouse_handler.handle(event)
+
     def tick(self):
-        pass
+        # tick handlers
+        self.keyboard_handler.tick()
+        self.mouse_handler.tick()
+
+        # tick objects
+        for obj in self.objects:
+            obj.tick()
 
     def render(self):
         # background color
         self.window.fill((255, 255, 255), [(0, 0), (self.width, self.height)])
+
+        # render objects
+        for obj in self.objects:
+            obj.render(self.window)
 
         # update screen
         pygame.display.update()
