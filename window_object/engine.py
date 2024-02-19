@@ -1,4 +1,5 @@
 from math import pi, sin
+from random import random
 from threading import Thread
 
 from pyaudio import PyAudio, paInt16
@@ -120,6 +121,7 @@ class Engine(Object):
         self.pwm_display.render(window)
         self.acceleration_display.render(window)
         self.enable_display.render(window)
+        self.frequency_display.render(window)
 
     def write_wave(self):
         while self.writing:
@@ -129,7 +131,8 @@ class Engine(Object):
 
             self.x += 2 * pi * self.frequency / self.sample_rate
             self.x %= 2 * pi
-            value = pwm(self.x, self.pwm_rate) * self.enable_rate + sin(self.x) * (1 - self.enable_rate)
+            value = (pwm(self.x, self.pwm_rate) * self.enable_rate + sin(self.x) * (1 - self.enable_rate)) * 0.9 \
+                + (random() * 2 - 1) * 0.1
 
             buffer = bytes(
                 separate(
