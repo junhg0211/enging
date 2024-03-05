@@ -1,9 +1,10 @@
+from collections import deque
 from math import pi, sin
 from random import random
 from threading import Thread
 
 from pyaudio import PyAudio, paInt16
-from pygame import Surface, Color
+from pygame import Surface, Color, draw
 from pygame.font import Font
 
 from window_handler import MouseHandler
@@ -45,20 +46,11 @@ class Engine(Object):
         self.mouse_handler = mouse_handler
 
         audio = PyAudio()
-        self.sample_rate = int(
-            audio
-            .get_default_output_device_info()
-            .get('defaultSampleRate')
-        )
+        self.sample_rate = int(audio.get_default_output_device_info().get('defaultSampleRate'))
         self.channels = 1
         self.bitrate = 16
-        self.stream = audio.open(
-            format=paInt16,
-            channels=self.channels,
-            input=False,
-            output=True,
-            rate=self.sample_rate
-        )
+        self.stream = audio.open(format=paInt16, channels=self.channels, input=False, output=True,
+            rate=self.sample_rate)
 
         self.volume = 0.0
         self.frequency = 0.0
@@ -84,6 +76,10 @@ class Engine(Object):
 
         self.writing = True
         self.thread = Thread(target=self.write_wave)
+
+        self.value = 0
+        self.value_history = deque()
+        self.value_history_count = 250
 
         self.thread.start()
 
@@ -111,6 +107,14 @@ class Engine(Object):
         self.enable_display.tick()
         self.frequency_display.tick()
 
+        try:
+            self.value_history_count = round(self.sample_rate / self.frequency)
+        except ZeroDivisionError:
+            self.value_history_count = 1
+        else:
+            if self.value_history_count > 800:
+                self.value_history_count = 800
+
     def render(self, window: Surface):
         self.volume_slider.render(window)
         self.pwm_rate_slider.render(window)
@@ -123,6 +127,16 @@ class Engine(Object):
         self.enable_display.render(window)
         self.frequency_display.render(window)
 
+        for i in range(len(self.value_history) - 1):
+            history = self.value_history[i]
+            try:
+                next_history = self.value_history[i + 1]
+            except IndexError:
+                break
+            if self.value_history_count != 0:
+                draw.line(window, (0, 0, 0), (700 + i / self.value_history_count * 500, 100 * history + 300),
+                                             (700 + (i + 1) / self.value_history_count * 500, 100 * next_history + 300))
+
     def write_wave(self):
         while self.writing:
             self.frequency += (self.acceleration * self.enable_rate - (1 - self.enable_rate) * 2) / self.sample_rate
@@ -132,15 +146,17 @@ class Engine(Object):
 
             self.x += 2 * pi * self.frequency / self.sample_rate
             self.x %= 2 * pi
-            value = (pwm(self.x, self.pwm_rate) * self.enable_rate + sin(self.x) * (1 - self.enable_rate)) * 0.9 \
-                + (random() * 2 - 1) * 0.1
+            self.value = pwm(self.x, self.pwm_rate)
 
-            buffer = bytes(
-                separate(
-                    int(value * self.volume / 2 * 2 ** self.bitrate),
-                    self.bitrate // 8
-                )
-            )
+            self.value_history.append(self.value)
+            while len(self.value_history) > 2 * self.value_history_count:
+                for i in range(self.value_history_count):
+                    self.value_history.popleft()
+
+            self.value = self.value * self.enable_rate + sin(self.x) * (1 - self.enable_rate)
+            self.value = self.value * 0.95 + (random() * 2 - 1) * 0.05
+
+            buffer = bytes(separate(int(self.value * self.volume / 2 * 2 ** self.bitrate), self.bitrate // 8))
 
             try:
                 self.stream.write(buffer)
