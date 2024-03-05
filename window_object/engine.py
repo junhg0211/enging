@@ -68,7 +68,7 @@ class Engine(Object):
         self.enable_rate = 0.0
 
         self.volume_slider = Slider(100, 100, 400, 100, self.mouse_handler)
-        self.pwm_rate_slider = Slider(250, 100, 400, 12, self.mouse_handler)
+        self.pwm_rate_slider = Slider(250, 100, 400, 10, self.mouse_handler)
         self.acceleration_slider = Slider(400, 100, 400, 13, self.mouse_handler)
         self.enable_slider = Slider(550, 100, 400, 12, self.mouse_handler)
 
@@ -94,7 +94,7 @@ class Engine(Object):
         self.enable_slider.tick()
 
         self.volume = self.volume_slider.get_value_rate()
-        self.pwm_rate = self.pwm_rate_slider.get_value() * 2 + 3
+        self.pwm_rate = round(1.5 ** (self.pwm_rate_slider.get_value() + 2))
         self.acceleration = self.acceleration_slider.get_value() - 7
         self.enable_rate = self.enable_slider.get_value_rate()
 
@@ -125,10 +125,8 @@ class Engine(Object):
 
     def write_wave(self):
         while self.writing:
-            self.frequency += (
-                                  self.acceleration * self.enable_rate * 3
-                                  - (1 - self.enable_rate) * self.frequency * 0.005
-                              ) / self.sample_rate
+            self.frequency += (self.acceleration * self.enable_rate - (1 - self.enable_rate) * 2) / self.sample_rate
+
             if self.frequency < 0.0:
                 self.frequency = 0.0
 
