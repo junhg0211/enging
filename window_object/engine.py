@@ -46,11 +46,18 @@ class Engine(Object):
         self.mouse_handler = mouse_handler
 
         audio = PyAudio()
-        self.sample_rate = int(audio.get_default_output_device_info().get('defaultSampleRate'))
+        sample_rate = audio.get_default_output_device_info().get("defaultSampleRate")
+        assert sample_rate is not None
+        self.sample_rate = int(sample_rate)
         self.channels = 1
         self.bitrate = 16
-        self.stream = audio.open(format=paInt16, channels=self.channels, input=False, output=True,
-            rate=self.sample_rate)
+        self.stream = audio.open(
+            format=paInt16,
+            channels=self.channels,
+            input=False,
+            output=True,
+            rate=self.sample_rate,
+        )
 
         self.volume = 0.0
         self.frequency = 0.0
@@ -64,7 +71,7 @@ class Engine(Object):
         self.acceleration_slider = Slider(400, 100, 400, 13, self.mouse_handler)
         self.enable_slider = Slider(550, 100, 400, 12, self.mouse_handler)
 
-        font = Font('./res/font/PretendardJP-Regular.otf', 18)
+        font = Font("./res/font/PretendardJP-Regular.otf", 18)
         black = Color(0, 0, 0)
         white = Color(255, 255, 255)
         self.volume_display = Display(100, 600, 100, 50, font, black, white)
@@ -94,12 +101,12 @@ class Engine(Object):
         self.acceleration = self.acceleration_slider.get_value() - 7
         self.enable_rate = self.enable_slider.get_value_rate()
 
-        self.volume_display.set_text(format(self.volume * 100, '.2f'))
+        self.volume_display.set_text(format(self.volume * 100, ".2f"))
         self.pwm_display.set_text(str(self.pwm_rate))
         self.acceleration_display.set_text(str(self.acceleration))
-        self.enable_display.set_text(format(self.enable_rate, '.3f'))
+        self.enable_display.set_text(format(self.enable_rate, ".3f"))
 
-        self.frequency_display.set_text(format(self.frequency, ',.1f'))
+        self.frequency_display.set_text(format(self.frequency, ",.1f"))
 
         self.volume_display.tick()
         self.pwm_display.tick()
@@ -134,12 +141,21 @@ class Engine(Object):
             except IndexError:
                 break
             if self.value_history_count != 0:
-                draw.line(window, (0, 0, 0), (700 + i / self.value_history_count * 500, 100 * history + 300),
-                                             (700 + (i + 1) / self.value_history_count * 500, 100 * next_history + 300))
+                draw.line(
+                    window,
+                    (0, 0, 0),
+                    (700 + i / self.value_history_count * 500, 100 * history + 300),
+                    (
+                        700 + (i + 1) / self.value_history_count * 500,
+                        100 * next_history + 300,
+                    ),
+                )
 
     def write_wave(self):
         while self.writing:
-            self.frequency += (self.acceleration * self.enable_rate - (1 - self.enable_rate) * 2) / self.sample_rate
+            self.frequency += (
+                self.acceleration * self.enable_rate - (1 - self.enable_rate) * 2
+            ) / self.sample_rate
 
             if self.frequency < 0.0:
                 self.frequency = 0.0
@@ -150,13 +166,20 @@ class Engine(Object):
 
             self.value_history.append(self.value)
             while len(self.value_history) > 2 * self.value_history_count:
-                for i in range(self.value_history_count):
+                for _ in range(self.value_history_count):
                     self.value_history.popleft()
 
-            self.value = self.value * self.enable_rate + sin(self.x) * (1 - self.enable_rate)
+            self.value = self.value * self.enable_rate + sin(self.x) * (
+                1 - self.enable_rate
+            )
             self.value = self.value * 0.95 + (random() * 2 - 1) * 0.05
 
-            buffer = bytes(separate(int(self.value * self.volume / 2 * 2 ** self.bitrate), self.bitrate // 8))
+            buffer = bytes(
+                separate(
+                    int(self.value * self.volume / 2 * 2**self.bitrate),
+                    self.bitrate // 8,
+                )
+            )
 
             try:
                 self.stream.write(buffer)
