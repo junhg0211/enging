@@ -114,6 +114,11 @@ class Engine(Object):
         self.enable_display.tick()
         self.frequency_display.tick()
 
+        if self.frequency * self.pwm_rate > 300:
+            self.pwm_rate_slider.set_value(self.pwm_rate_slider.get_value() - 1)
+        elif self.frequency * self.pwm_rate < 150:
+            self.pwm_rate_slider.set_value(self.pwm_rate_slider.get_value() + 1)
+
         try:
             self.value_history_count = round(self.sample_rate / self.frequency)
         except ZeroDivisionError:

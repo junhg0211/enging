@@ -13,7 +13,9 @@ class Slider(Object):
     HANDLE_HALF_WIDTH = 50
     HANDLE_HALF_HEIGHT = 30
 
-    def __init__(self, x: int, up_y: int, length: int, levels: int, mouse_handler: MouseHandler):
+    def __init__(
+        self, x: int, up_y: int, length: int, levels: int, mouse_handler: MouseHandler
+    ):
         self.x = x
         self.y = up_y
         self.length = length
@@ -30,10 +32,16 @@ class Slider(Object):
         # check mouse pressed
         if self.mouse_handler.is_pressed(BUTTON_LEFT):
             # check cursor in area
-            if self.x - Slider.HANDLE_HALF_WIDTH < self.mouse_handler.x < self.x + Slider.HANDLE_HALF_WIDTH \
-                    and self.y < self.mouse_handler.y < self.y + self.length:
+            if (
+                self.x - Slider.HANDLE_HALF_WIDTH
+                < self.mouse_handler.x
+                < self.x + Slider.HANDLE_HALF_WIDTH
+                and self.y < self.mouse_handler.y < self.y + self.length
+            ):
                 # calculate value
-                self.value = round((self.mouse_handler.y - self.y) / self.length * self.max_level)
+                self.value = round(
+                    (self.mouse_handler.y - self.y) / self.length * self.max_level
+                )
 
                 # change slider y value
                 self.slider_y = self.get_slider_y()
@@ -41,15 +49,26 @@ class Slider(Object):
     def render(self, window: Surface):
         # slider background
         draw.rect(
-            window, Slider.BACKGROUND_COLOR,
-            (self.x - Slider.BACKGROUND_HALF_WIDTH, self.y, Slider.BACKGROUND_HALF_WIDTH * 2, self.length)
+            window,
+            Slider.BACKGROUND_COLOR,
+            (
+                self.x - Slider.BACKGROUND_HALF_WIDTH,
+                self.y,
+                Slider.BACKGROUND_HALF_WIDTH * 2,
+                self.length,
+            ),
         )
 
         # slider handle
         draw.rect(
-            window, Slider.HANDLE_COLOR,
-            (self.x - Slider.HANDLE_HALF_WIDTH, self.slider_y - Slider.HANDLE_HALF_HEIGHT,
-             Slider.HANDLE_HALF_WIDTH * 2, Slider.HANDLE_HALF_HEIGHT * 2)
+            window,
+            Slider.HANDLE_COLOR,
+            (
+                self.x - Slider.HANDLE_HALF_WIDTH,
+                self.slider_y - Slider.HANDLE_HALF_HEIGHT,
+                Slider.HANDLE_HALF_WIDTH * 2,
+                Slider.HANDLE_HALF_HEIGHT * 2,
+            ),
         )
 
     def get_value(self) -> int:
@@ -60,15 +79,25 @@ class Slider(Object):
 
     def set_value(self, value: int):
         self.value = value
+        self.value = min(self.value, self.max_level)
         self.slider_y = self.get_slider_y()
 
     def set_value_rate(self, rate: float):
         self.value = round(rate * self.max_level)
+        self.value = max(self.value, 0)
         self.slider_y = self.get_slider_y()
 
 
 class ReturnSlider(Slider):
-    def __init__(self, x: int, up_y: int, length: int, levels: int, return_value: int, mouse_handler: MouseHandler):
+    def __init__(
+        self,
+        x: int,
+        up_y: int,
+        length: int,
+        levels: int,
+        return_value: int,
+        mouse_handler: MouseHandler,
+    ):
         super().__init__(x, up_y, length, levels, mouse_handler)
 
         self.return_value = return_value
